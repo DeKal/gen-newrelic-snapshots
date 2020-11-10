@@ -7,6 +7,8 @@ const ALL_SLASHES = /\//g;
 
 const UNTIL_NETWORK_IDLE = { waitUntil: "networkidle0", timeout: 30000 };
 
+const waitingTime = parseInt(process.env.FIXED_WAITING_TIME);
+
 const makeGenScreenshotPath = ({ applicationName, start, end }) => {
   if (!fs.existsSync(ARTIFACTS_DIR)) {
     fs.mkdirSync(ARTIFACTS_DIR);
@@ -37,25 +39,25 @@ const makeGenNewRelicPage = (accountId, applicationId, start, end) => (
 const toTimestamp = (dateStr) => Math.floor(new Date(dateStr) / 1000);
 
 const takeScreenshotIfExist = async (page, genScreenshotPath, text) => {
-  await page.waitFor(10000);
-
   const links = await page.$x(`//a/*[contains(text(), '${text}')]/..`);
 
   if (!links.length) {
     return;
   }
 
-  await page.waitFor(10000);
+  await Promise.all([
+    links[0].click(),
+    page.waitForNavigation(UNTIL_NETWORK_IDLE),
+  ]);
 
-  links[0].click();
-
-  await page.waitFor(10000);
+  await page.waitForTimeout(waitingTime);
 
   console.warn(`Taking a screenshot of page: ${text}`);
-  await page.screenshot(genScreenshotPath(text));
+  return await page.screenshot(genScreenshotPath(text));
 };
 
 const run = async ({
+  webSocketDebuggerUrl,
   accountId,
   applicationId,
   applicationName,
@@ -87,10 +89,10 @@ const run = async ({
        * Start your Chrome in debugging mode, and get ws endpoint
        * "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary" --remote-debugging-port=9222
        */
-      browserWSEndpoint: process.env.WS_ENDPOINT,
+      browserWSEndpoint: webSocketDebuggerUrl,
       defaultViewport: {
-        width: 1280,
-        height: 960,
+        width: parseInt(process.env.VIEW_PORT_WIDTH),
+        height: parseInt(process.env.VIEW_PORT_HEIGHT),
       },
     });
   } catch (error) {
@@ -106,39 +108,40 @@ const run = async ({
 
   const page = pages[0];
 
+  /**
+   * Go to the Overview page, wait some time and take the picture of the page
+   */
   await page.goto(overviewPage);
+  await page.waitForTimeout(waitingTime);
+  await page.screenshot(genScreenshotPath("Summary"));
 
-  try {
-    await takeScreenshotIfExist(page, genScreenshotPath, "Summary");
-    await takeScreenshotIfExist(page, genScreenshotPath, "Go runtime");
-    await takeScreenshotIfExist(page, genScreenshotPath, "Solr caches");
-    await takeScreenshotIfExist(page, genScreenshotPath, "Solr updates");
-    await takeScreenshotIfExist(page, genScreenshotPath, "JVMs");
-    await takeScreenshotIfExist(page, genScreenshotPath, "Errors");
+  await takeScreenshotIfExist(page, genScreenshotPath, "Go runtime");
+  await takeScreenshotIfExist(page, genScreenshotPath, "Solr caches");
+  await takeScreenshotIfExist(page, genScreenshotPath, "Solr updates");
+  await takeScreenshotIfExist(page, genScreenshotPath, "JVMs");
+  await takeScreenshotIfExist(page, genScreenshotPath, "Errors");
 
-    await takeScreenshotIfExist(page, genScreenshotPath, "Transactions");
-  } catch (e) {}
+  await takeScreenshotIfExist(page, genScreenshotPath, "Transactions");
 
-  const transactionCount = await page.$$eval(
-    ".app_tier_alone",
-    (items) => items.length
-  );
+  const transactionCount = await page.$$('[class$="bar-item"]');
 
-  for (let index of [...Array(transactionCount).keys()]) {
+  for (let index = 0; index < transactionCount.length; ++index) {
+    const transaction = transactionCount[index];
     console.warn(`Clicking transaction ${index}`);
 
     await Promise.all([
-      page.click(`.app_tier_alone:nth-child(${index + 1}) a`),
+      transaction.click(),
       page.waitForNavigation(UNTIL_NETWORK_IDLE),
     ]);
 
     const transactionName = await page.$eval(
-      "h2.section.with_corner_button",
+      ".TransactionDetailedDrilldown-header-title",
       (element) => {
         return element.textContent.replace(/^\s+|\s+$/g, "");
       }
     );
 
+    await page.waitForTimeout(1000);
     console.warn(`> Taking a screenshot of ${transactionName}`);
     await page.screenshot(genScreenshotPath("transactions" + transactionName));
   }

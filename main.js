@@ -1,41 +1,65 @@
-const run = require('./run')
+require("dotenv").config();
 
-const accountId = 1232118
+const run = require("./run");
+const http = require("http");
+
+const accountId = process.env.ACCOUNT_ID;
 
 const aplicationIds = {
-  'costa-live-id': 996991774,
-  'costa-live-ph': 997039335,
-  'costa-live-my': 994598841,
-  'costa-live-sg': 994598436,
-  'costa-live-hk': 984245537,
-  'costa-live-tw': 984245381,
+  "costa-live-id": process.env.COSTA_LIVE_ID,
+  "costa-live-ph": process.env.COSTA_LIVE_PH,
+  "costa-live-my": process.env.COSTA_LIVE_MY,
+  "costa-live-sg": process.env.COSTA_LIVE_SG,
+  "costa-live-hk": process.env.COSTA_LIVE_HK,
+  "costa-live-tw": process.env.COSTA_LIVE_TW,
 
-  'solr-live-id': 375414486,
-  'solr-live-ph': 375414270,
-  'solr-live-my': 375414818,
-  'solr-live-sg': 375414235,
-  'solr-live-hk': 375409527,
-  'solr-live-tw': 375414222
-}
+  "solr-live-id": process.env.SOLR_LIVE_ID,
+  "solr-live-ph": process.env.SOLR_LIVE_PH,
+  "solr-live-my": process.env.SOLR_LIVE_MY,
+  "solr-live-sg": process.env.SOLR_LIVE_SG,
+  "solr-live-hk": process.env.SOLR_LIVE_HK,
+  "solr-live-tw": process.env.SOLR_LIVE_TW,
+};
 
 const timeRanges = [
-  ['8 Nov 2020 21:00:00 GMT+0800', '9 Nov 2020 03:00:00 GMT+0800'],
-  ['9 Nov 2020 08:00:00 GMT+0800', '9 Nov 2020 14:00:00 GMT+0800'],
-  ['9 Nov 2020 20:00:00 GMT+0800', '10 Nov 2020 02:00:00 GMT+0800']
-]
+  ["8 Nov 2020 21:00:00 GMT+0800", "9 Nov 2020 03:00:00 GMT+0800"],
+  ["9 Nov 2020 08:00:00 GMT+0800", "9 Nov 2020 14:00:00 GMT+0800"],
+  ["9 Nov 2020 20:00:00 GMT+0800", "10 Nov 2020 02:00:00 GMT+0800"],
+];
 
-;(async () => {
+const getWsDebuggerUrl = async () => {
+  return new Promise((resolve) => {
+    http.get("http://127.0.0.1:9222/json/version", (res) => {
+      res.addListener("data", (data) => {
+        try {
+          const result = JSON.parse(data.toString());
+          const { webSocketDebuggerUrl } = result;
+          resolve(webSocketDebuggerUrl);
+        } catch (e) {
+          console.error(e);
+        }
+      });
+    });
+  });
+};
+
+(async () => {
+  const webSocketDebuggerUrl = await getWsDebuggerUrl();
+
   for (let applicationName of Object.keys(aplicationIds)) {
     for (let timeRange of timeRanges) {
-      const [start, end] = timeRange
+      const [start, end] = timeRange;
 
       await run({
+        webSocketDebuggerUrl,
         accountId,
         applicationId: aplicationIds[applicationName],
         applicationName,
         start,
-        end
-      })
+        end,
+      }).catch((e) => {
+        console.log(e)
+      });
     }
   }
-})()
+})();

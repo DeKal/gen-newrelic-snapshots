@@ -1,5 +1,9 @@
 {
+  "scripts": {
+    "start": "node main.js"
+  },
   "dependencies": {
-    "puppeteer-core": "^1.10.0"
+    "dotenv": "^8.2.0",
+    "puppeteer-core": "^5.4.1"
   }
 }
