@@ -7,6 +7,7 @@ const configs = require("./config.json");
 const accountId = configs.accountId;
 const applicationIds = configs.applicationIds;
 const timeRanges = configs.timeRanges;
+const pages = configs.pages;
 
 const getWsDebuggerUrl = async () => {
   return new Promise((resolve) => {
@@ -25,6 +26,7 @@ const getWsDebuggerUrl = async () => {
 };
 
 (async () => {
+  let isFirstRun = true;
   const webSocketDebuggerUrl = await getWsDebuggerUrl();
 
   for (let applicationName of Object.keys(applicationIds)) {
@@ -38,9 +40,12 @@ const getWsDebuggerUrl = async () => {
         applicationName,
         start,
         end,
+        pages,
+        isFirstRun,
       }).catch((e) => {
         console.log(e);
       });
+      isFirstRun = false;
     }
   }
 })();

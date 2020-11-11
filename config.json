@@ -15,6 +15,12 @@
     "solr-live-tw": "375414222"
   },
   "timeRanges": [
-    ["10 Nov 2020 21:00:00 GMT+0800", "11 Nov 2020 03:00:00 GMT+0800"]
-  ]
+    ["11 Nov 2020 19:00:00 GMT+0800", "11 Nov 2020 20:30:00 GMT+0800"]
+  ],
+  "pages": ["Go runtime", "Solr caches", "Solr updates", "JVMs", "Errors"],
+  "selectors": {
+    "page": "//a/*[contains(text(), '${page}')]/..",
+    "transactionItem": "[class$=\"bar-item\"]",
+    "transactionItemTitle": ".TransactionDetailedDrilldown-header-title"
+  }
 }

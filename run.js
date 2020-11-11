@@ -1,6 +1,9 @@
 const puppeteer = require("puppeteer-core");
 const fs = require("fs");
 
+const configs = require("./config.json");
+const selectors = configs.selectors;
+
 const ARTIFACTS_DIR = "artifacts";
 
 const ALL_SLASHES = /\//g;
@@ -8,6 +11,7 @@ const ALL_SLASHES = /\//g;
 const UNTIL_NETWORK_IDLE = { waitUntil: "networkidle0", timeout: 30000 };
 
 const waitingTime = parseInt(process.env.FIXED_WAITING_TIME);
+const limitedTransactionItems = process.env.TRANSACTION_LIMITED_ITEMS;
 
 const makeGenScreenshotPath = ({ applicationName, start, end }) => {
   if (!fs.existsSync(ARTIFACTS_DIR)) {
@@ -39,7 +43,8 @@ const makeGenNewRelicPage = (accountId, applicationId, start, end) => (
 const toTimestamp = (dateStr) => Math.floor(new Date(dateStr) / 1000);
 
 const takeScreenshotIfExist = async (page, genScreenshotPath, text) => {
-  const links = await page.$x(`//a/*[contains(text(), '${text}')]/..`);
+  const linkSelector = selectors.page.replace("${page}", text);
+  const links = await page.$x(linkSelector);
 
   if (!links.length) {
     return;
@@ -63,6 +68,8 @@ const run = async ({
   applicationName,
   start,
   end,
+  pages,
+  isFirstRun
 }) => {
   const genRelicPage = makeGenNewRelicPage(
     accountId,
@@ -85,10 +92,6 @@ const run = async ({
   let browser;
   try {
     browser = await puppeteer.connect({
-      /**
-       * Start your Chrome in debugging mode, and get ws endpoint
-       * "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary" --remote-debugging-port=9222
-       */
       browserWSEndpoint: webSocketDebuggerUrl,
       defaultViewport: {
         width: parseInt(process.env.VIEW_PORT_WIDTH),
@@ -100,50 +103,63 @@ const run = async ({
     process.exit(1);
   }
 
-  const pages = await browser.pages();
+  const browserPages = await browser.pages();
 
-  if (!pages.length) {
+  if (!browserPages.length) {
     throw new Error("You need to open your New Relic transaction page");
   }
 
-  const page = pages[0];
+  const browserPage = browserPages[0];
 
   /**
-   * Go to the Overview page, wait some time and take the picture of the page
+   * Go to the Overview page, wait some time and take the picture of the page\
+   * Default will take Summary and Transactions pages
    */
-  await page.goto(overviewPage);
-  await page.waitForTimeout(waitingTime);
-  await page.screenshot(genScreenshotPath("Summary"));
+  await browserPage.goto(overviewPage);
+  
+  /**
+   * On first run wait extra time for newrelic to render
+   */
+  if (isFirstRun) {
+    await browserPage.waitForTimeout(waitingTime);  
+  }
+  await browserPage.waitForTimeout(waitingTime);
+  
+  await browserPage.screenshot(genScreenshotPath("Summary"));
+    
+  // Take screenshot for other pages
+  for (let index = 0; index < pages.length; index++) {
+    await takeScreenshotIfExist(browserPage, genScreenshotPath, pages[index]);
+  }
 
-  await takeScreenshotIfExist(page, genScreenshotPath, "Go runtime");
-  await takeScreenshotIfExist(page, genScreenshotPath, "Solr caches");
-  await takeScreenshotIfExist(page, genScreenshotPath, "Solr updates");
-  await takeScreenshotIfExist(page, genScreenshotPath, "JVMs");
-  await takeScreenshotIfExist(page, genScreenshotPath, "Errors");
+  await takeScreenshotIfExist(browserPage, genScreenshotPath, "Transactions");
+  const transactionCount = await browserPage.$$(selectors.transactionItem);
 
-  await takeScreenshotIfExist(page, genScreenshotPath, "Transactions");
-
-  const transactionCount = await page.$$('[class$="bar-item"]');
-
-  for (let index = 0; index < transactionCount.length; ++index) {
+  for (
+    let index = 0;
+    index < transactionCount.length && index < limitedTransactionItems;
+    ++index
+  ) {
     const transaction = transactionCount[index];
     console.warn(`Clicking transaction ${index}`);
 
     await Promise.all([
       transaction.click(),
-      page.waitForNavigation(UNTIL_NETWORK_IDLE),
+      browserPage.waitForNavigation(UNTIL_NETWORK_IDLE),
     ]);
 
-    const transactionName = await page.$eval(
-      ".TransactionDetailedDrilldown-header-title",
+    const transactionName = await browserPage.$eval(
+      selectors.transactionItemTitle,
       (element) => {
         return element.textContent.replace(/^\s+|\s+$/g, "");
       }
     );
 
-    await page.waitForTimeout(1000);
+    await browserPage.waitForTimeout(1000);
     console.warn(`> Taking a screenshot of ${transactionName}`);
-    await page.screenshot(genScreenshotPath("transactions" + transactionName));
+    await browserPage.screenshot(
+      genScreenshotPath("transactions" + transactionName)
+    );
   }
 
   browser.disconnect();
