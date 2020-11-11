@@ -12,7 +12,6 @@ Take NewRelic screenshots as snapshots
 
 - Download Google Chrome Canary (if you are on Macos, the link to Google Chrome Canary should be same with the next step)
 
-
 - Start your Chrome Canary in debugging mode
 ```
 ./scripts/start_chrome_canary.sh

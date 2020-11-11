@@ -22,9 +22,7 @@ const aplicationIds = {
 };
 
 const timeRanges = [
-  ["8 Nov 2020 21:00:00 GMT+0800", "9 Nov 2020 03:00:00 GMT+0800"],
-  ["9 Nov 2020 08:00:00 GMT+0800", "9 Nov 2020 14:00:00 GMT+0800"],
-  ["9 Nov 2020 20:00:00 GMT+0800", "10 Nov 2020 02:00:00 GMT+0800"],
+  ["10 Nov 2020 21:00:00 GMT+0800", "11 Nov 2020 03:00:00 GMT+0800"],
 ];
 
 const getWsDebuggerUrl = async () => {
