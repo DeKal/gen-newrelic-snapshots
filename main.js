@@ -2,28 +2,11 @@ require("dotenv").config();
 
 const run = require("./run");
 const http = require("http");
+const configs = require("./config.json");
 
-const accountId = process.env.ACCOUNT_ID;
-
-const aplicationIds = {
-  "costa-live-id": process.env.COSTA_LIVE_ID,
-  "costa-live-ph": process.env.COSTA_LIVE_PH,
-  "costa-live-my": process.env.COSTA_LIVE_MY,
-  "costa-live-sg": process.env.COSTA_LIVE_SG,
-  "costa-live-hk": process.env.COSTA_LIVE_HK,
-  "costa-live-tw": process.env.COSTA_LIVE_TW,
-
-  "solr-live-id": process.env.SOLR_LIVE_ID,
-  "solr-live-ph": process.env.SOLR_LIVE_PH,
-  "solr-live-my": process.env.SOLR_LIVE_MY,
-  "solr-live-sg": process.env.SOLR_LIVE_SG,
-  "solr-live-hk": process.env.SOLR_LIVE_HK,
-  "solr-live-tw": process.env.SOLR_LIVE_TW,
-};
-
-const timeRanges = [
-  ["10 Nov 2020 21:00:00 GMT+0800", "11 Nov 2020 03:00:00 GMT+0800"],
-];
+const accountId = configs.accountId;
+const applicationIds = configs.applicationIds;
+const timeRanges = configs.timeRanges;
 
 const getWsDebuggerUrl = async () => {
   return new Promise((resolve) => {
@@ -44,19 +27,19 @@ const getWsDebuggerUrl = async () => {
 (async () => {
   const webSocketDebuggerUrl = await getWsDebuggerUrl();
 
-  for (let applicationName of Object.keys(aplicationIds)) {
+  for (let applicationName of Object.keys(applicationIds)) {
     for (let timeRange of timeRanges) {
       const [start, end] = timeRange;
 
       await run({
         webSocketDebuggerUrl,
         accountId,
-        applicationId: aplicationIds[applicationName],
+        applicationId: applicationIds[applicationName],
         applicationName,
         start,
         end,
       }).catch((e) => {
-        console.log(e)
+        console.log(e);
       });
     }
   }

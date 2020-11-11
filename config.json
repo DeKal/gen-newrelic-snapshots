@@ -1,0 +1,20 @@
+{
+  "accountId": "1232118",
+  "applicationIds": {
+    "costa-live-id": "996991774",
+    "costa-live-ph": "997039335",
+    "costa-live-my": "994598841",
+    "costa-live-sg": "994598436",
+    "costa-live-hk": "984245537",
+    "costa-live-tw": "984245381",
+    "solr-live-id": "375414486",
+    "solr-live-ph": "375414270",
+    "solr-live-my": "375414818",
+    "solr-live-sg": "375414235",
+    "solr-live-hk": "375409527",
+    "solr-live-tw": "375414222"
+  },
+  "timeRanges": [
+    ["10 Nov 2020 21:00:00 GMT+0800", "11 Nov 2020 03:00:00 GMT+0800"]
+  ]
+}

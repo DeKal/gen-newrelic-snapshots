@@ -17,9 +17,9 @@ Take NewRelic screenshots as snapshots
 ./scripts/start_chrome_canary.sh
 ```
 
-- Make sure you already logged in into NR.
+- **!!! Important, remember to visit your newrelic page, before next step !!!**. Make sure you already logged in into NR. On opening new relic page, a lot of things need to be loaded, so opening newrelic page before avoids reloading the whole site on first visit.
 
-- Configure your account ids, application ids in `.env` and time ranges in `main.js`, then run:
+- Configure your account ids, application ids and time ranges in `config.json`  , then run:
 ```
 yarn start
 ```
