@@ -155,7 +155,7 @@ const run = async ({
       }
     );
 
-    await browserPage.waitForTimeout(1000);
+    await browserPage.waitForTimeout(2000);
     console.warn(`> Taking a screenshot of ${transactionName}`);
     await browserPage.screenshot(
       genScreenshotPath("transactions" + transactionName)
