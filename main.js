@@ -2,7 +2,7 @@ require("dotenv").config();
 
 const run = require("./run");
 const http = require("http");
-const configs = require("./config.json");
+const configs = require("./config");
 
 const accountId = configs.accountId;
 const applicationIds = configs.applicationIds;

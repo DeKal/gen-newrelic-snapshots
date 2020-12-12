@@ -1,4 +1,4 @@
-{
+const config = {
   "accountId": "1232118",
   "applicationIds": {
     "costa-live-id": "996991774",
@@ -15,7 +15,9 @@
     "solr-live-tw": "375414222"
   },
   "timeRanges": [
-    ["11 Dec 2020 20:00:00 GMT+0700", "12 Dec 2020 02:00:00 GMT+0700"]
+    // ["10 Nov 2020 23:00:00 GMT+0800", "12 Nov 2020 01:30:00 GMT+0800"],
+    // ["11 Dec 2020 20:30:00 GMT+0700", "12 Dec 2020 02:00:00 GMT+0700"],
+    ["12 Dec 2020 08:30:00 GMT+0700", "12 Dec 2020 10:00:00 GMT+0700"]
   ],
   "pages": ["Go runtime", "Solr updates", "JVMs", "Errors"],
   "selectors": {
@@ -24,3 +26,5 @@
     "transactionItemTitle": ".TransactionDetailedDrilldown-header-title"
   }
 }
+
+module.exports = config;

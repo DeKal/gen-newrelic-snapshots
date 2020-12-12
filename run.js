@@ -1,7 +1,7 @@
 const puppeteer = require("puppeteer-core");
 const fs = require("fs");
 
-const configs = require("./config.json");
+const configs = require("./config");
 const selectors = configs.selectors;
 
 const ARTIFACTS_DIR = "artifacts";
